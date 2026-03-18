@@ -1,42 +1,33 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { defineJsonTestCases } from './testUtils';
-import { add, parseJson } from './utils';
+import { Document, Edit } from './types';
+import { richTextEditing } from './utils';
 
 const casesDir = path.join(__dirname, 'testCases');
 
-function collectJsonFiles(dirPath: string): string[] {
-  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-  return entries.flatMap((ent) => {
-    const fullPath = path.join(dirPath, ent.name);
-    if (ent.isDirectory()) return collectJsonFiles(fullPath);
-    if (ent.isFile() && ent.name.endsWith('.json')) return [fullPath];
-    return [];
+function readJsonFile<T>(filePath: string): T {
+  return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T;
+}
+
+const caseDirs = fs
+  .readdirSync(casesDir, { withFileTypes: true })
+  .filter((ent) => ent.isDirectory())
+  .map((ent) => ent.name)
+  .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+if (caseDirs.length === 0) {
+  throw new Error(`No test case folders found in ${casesDir}`);
+}
+
+caseDirs.forEach((caseDirName) => {
+  const caseDir = path.join(casesDir, caseDirName);
+
+  const before = readJsonFile<Document>(path.join(caseDir, 'before.json'));
+  const edit = readJsonFile<Edit>(path.join(caseDir, 'edit.json'));
+  const expected = readJsonFile<Document>(path.join(caseDir, 'result.json'));
+
+  test(caseDirName, () => {
+    const actual = richTextEditing(before, edit);
+    expect(actual).toEqual(expected);
   });
-}
-
-const jsonFilePaths = collectJsonFiles(casesDir).sort((a, b) => a.localeCompare(b));
-
-if (jsonFilePaths.length === 0) {
-  throw new Error(`No JSON files found in ${casesDir}`);
-}
-
-function getFnForCaseFile(filePath: string): (input: unknown) => unknown {
-  const suiteName = path.basename(filePath, '.json');
-  switch (suiteName) {
-    case 'add':
-      return (input) => add(input as { a: number; b: number });
-    case 'parseJson':
-      return (input) => parseJson(input as string);
-    default:
-      throw new Error(
-        `No test target function mapped for JSON file ${path.basename(filePath)}.`,
-      );
-  }
-}
-
-jsonFilePaths.forEach((filePath) => {
-  const suiteName = path.basename(filePath, '.json');
-  const fnUnderTest = getFnForCaseFile(filePath);
-  defineJsonTestCases<any, any>(filePath, fnUnderTest, suiteName);
 });

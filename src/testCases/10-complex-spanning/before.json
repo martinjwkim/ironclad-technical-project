@@ -1,0 +1,32 @@
+{
+  "content": [
+    {
+      "text": "R",
+      "color": "red"
+    },
+    {
+      "text": "A",
+      "color": "orange"
+    },
+    {
+      "text": "I",
+      "color": "yellow"
+    },
+    {
+      "text": "N",
+      "color": "green"
+    },
+    {
+      "text": "B",
+      "color": "blue"
+    },
+    {
+      "text": "O",
+      "color": "indigo"
+    },
+    {
+      "text": "W",
+      "color": "violet"
+    }
+  ]
+}

@@ -1,70 +1,114 @@
-# Getting Started with Create React App
+# rich-text-editing
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+For this project you will write a program that accepts an input document and a desired edit in order to produce the correct resulting document.
+We have provided 11 test cases to demonstrate the desired strategy.
 
-## Available Scripts
+Each of these test cases builds upon the complexity of the last one.
+It is recommended to attempt to solve them in order.
 
-In the project directory, you can run:
+A visual version of each test case is available [here](https://docs.google.com/document/d/1goSsMCTUqRvtYkqmsNXPWPSzp-EsLNmnrb3lw5wyErk/edit?usp=sharing).
 
-### `npm start`
+## Requirements
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Your solution should be able to read in one test case (or all of them) through any means, parse the input document and edits, and output (to the command line or a file) the resulting document.
+You can use any language and any standard frameworks/libraries in your solution.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Your solution will be graded based on:
 
-### `npm test`
+- algorithm design
+- number of working test cases
+  - discussion of a plan for the remaining test cases
+- code quality (readability, organization, etc)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Legend
 
-### `npm run build`
+### Input Format
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### `before.json`
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The starting document of shape:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```ts
+/**
+ * A document with multiple text nodes
+ */
+interface Document {
+  content: Text[];
+}
 
-### `npm run eject`
+/**
+ * A text node of a certain color
+ */
+interface Text {
+  color: string;
+  text: string;
+}
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+e.g.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```json
+{
+  "content": [
+    {
+      "text": "Basic Starting Document",
+      "color": "black"
+    }
+  ]
+}
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+#### `edit.json`
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```ts
+/**
+ * Replace the text within the selection with new text
+ */
+interface Edit {
+  selection: Selection;
+  replacement: string;
+}
 
-## Learn More
+/**
+ * The part of the document a user wishes to edit
+ */
+interface Selection {
+  /**
+   * The index of the first character to include within the edit
+   */
+  startIndex: number;
+  /**
+   * The number of characters to be included in the editor
+   */
+  length: number;
+}
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+e.g.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```json
+{
+  "selection": {
+    "startIndex": 6,
+    "length": 0
+  },
+  "replacement": "Inserted "
+}
+```
 
-### Code Splitting
+### Output
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+#### `result.json`
 
-### Analyzing the Bundle Size
+The same format as `before.json` above e.g.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```json
+{
+  "content": [
+    {
+      "text": "Basic Inserted Starting Document",
+      "color": "black"
+    }
+  ]
+}
+```
