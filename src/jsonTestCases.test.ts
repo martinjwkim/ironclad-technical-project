@@ -1,24 +1,42 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { defineJsonTestCases } from './testUtils';
-import { parseJson } from './utils';
+import { add, parseJson } from './utils';
 
-const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ironclad-json-test-'));
-const casesFile = path.join(dir, 'cases.json');
+const casesDir = path.join(__dirname, 'testCases');
 
-fs.writeFileSync(
-  casesFile,
-  JSON.stringify(
-    [
-      { name: 'valid number', input: '123', expected: 123 },
-      { name: 'valid object', input: '{"a":1}', expected: { a: 1 } },
-      { name: 'invalid json', input: '{oops}', expected: null },
-    ],
-    null,
-    2,
-  ),
-  'utf8',
-);
+function collectJsonFiles(dirPath: string): string[] {
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+  return entries.flatMap((ent) => {
+    const fullPath = path.join(dirPath, ent.name);
+    if (ent.isDirectory()) return collectJsonFiles(fullPath);
+    if (ent.isFile() && ent.name.endsWith('.json')) return [fullPath];
+    return [];
+  });
+}
 
-defineJsonTestCases<string, unknown>(casesFile, (input) => parseJson(input));
+const jsonFilePaths = collectJsonFiles(casesDir).sort((a, b) => a.localeCompare(b));
+
+if (jsonFilePaths.length === 0) {
+  throw new Error(`No JSON files found in ${casesDir}`);
+}
+
+function getFnForCaseFile(filePath: string): (input: unknown) => unknown {
+  const suiteName = path.basename(filePath, '.json');
+  switch (suiteName) {
+    case 'add':
+      return (input) => add(input as { a: number; b: number });
+    case 'parseJson':
+      return (input) => parseJson(input as string);
+    default:
+      throw new Error(
+        `No test target function mapped for JSON file ${path.basename(filePath)}.`,
+      );
+  }
+}
+
+jsonFilePaths.forEach((filePath) => {
+  const suiteName = path.basename(filePath, '.json');
+  const fnUnderTest = getFnForCaseFile(filePath);
+  defineJsonTestCases<any, any>(filePath, fnUnderTest, suiteName);
+});
